@@ -15,5 +15,20 @@ jobs:
     steps:
     - name: Check out the codebase
       uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . -t hcejce/continuous_php_image
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with: 
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+        
+    - name: Login to ECR
+      run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/b0u6g4g3
+
+    - name: Build, tag, and push the Docker image
+      run: | 
+        docker build . -t hcejce/continuous_php_image
+        docker tag hcejce/continuous_php_image:latest public.ecr.aws/b0u6g4g3/hcejce/continuous_php_image:latest
+        docker push public.ecr.aws/b0u6g4g3/hcejce/continuous_php_image:latest
+    
